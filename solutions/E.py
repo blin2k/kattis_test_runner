@@ -1,4 +1,4 @@
 def foo():
-    pass
+    print('test')
 
 foo()
