@@ -7,6 +7,13 @@ SOLUTION_DIR = Path("solutions")
 PY = sys.executable
 TIMEOUT_SEC = 10
 
+
+def format_label(problem_name, case_id):
+    if case_id == problem_name:
+        return f"[{problem_name}]"
+    return f"[{problem_name}:{case_id}]"
+
+
 def norm(s):
     s = s.replace("\r\n", "\n").replace("\r", "\n")
     lines = [line.rstrip() for line in s.split("\n")]
@@ -16,10 +23,7 @@ def norm(s):
 
 def run_case(problem_name, algorithm, infile, expfile):
     case_id = infile.stem
-    if case_id == problem_name:
-        label = f"[{problem_name}]"
-    else:
-        label = f"[{problem_name}:{case_id}]"
+    label = format_label(problem_name, case_id)
 
     try:
         with infile.open("r", encoding="utf-8") as fin:
@@ -102,6 +106,11 @@ def main():
                     f"[{problem_name}:{infile.stem}] ❌ Missing expected output file {expfile.name}"
                 )
                 had_failure = True
+                continue
+
+            if infile.stat().st_size == 0 and expfile.stat().st_size == 0:
+                label = format_label(problem_name, infile.stem)
+                logs.append(f"{label} ⚠️ Empty testcase skipped")
                 continue
 
             ok, msg = run_case(problem_name, algorithm, infile, expfile)
