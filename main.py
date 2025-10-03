@@ -1,3 +1,4 @@
+import argparse
 import sys
 import subprocess
 from pathlib import Path
@@ -71,8 +72,77 @@ def run_case(problem_name, algorithm, infile, expfile):
             detail += f"\n\nstderr:\n{err}"
         return False, detail
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Run problem solutions against stored samples or clean those samples."
+    )
+    parser.add_argument(
+        "--clean",
+        metavar="PROBLEM",
+        help="Remove all .in/.out samples for the specified problem (e.g. Problem_X).",
+    )
+    parser.add_argument(
+        "--clean-all",
+        action="store_true",
+        help="Remove all .in/.out samples for every problem under solutions/.",
+    )
+
+    args = parser.parse_args()
+
+    if args.clean and args.clean_all:
+        parser.error("--clean and --clean-all cannot be used together")
+
+    return args
+
+
+def iter_problem_dirs():
+    return sorted([p for p in SOLUTION_DIR.iterdir() if p.is_dir()])
+
+
+def clean_samples(solution_dirs, target_problem=None):
+    logs = []
+    total_removed = 0
+
+    if target_problem:
+        solution_dirs = [p for p in solution_dirs if p.name == target_problem]
+        if not solution_dirs:
+            print(f"Problem '{target_problem}' not found under {SOLUTION_DIR}/.")
+            return False
+
+    for problem_dir in solution_dirs:
+        testcase_dir = problem_dir / "testcases"
+        if not testcase_dir.exists():
+            logs.append(f"[{problem_dir.name}] ⚠️ No testcase directory to clean")
+            continue
+
+        sample_files = [
+            f for f in testcase_dir.iterdir() if f.is_file() and f.suffix in {".in", ".out"}
+        ]
+
+        if not sample_files:
+            logs.append(f"[{problem_dir.name}] Nothing to clean")
+            continue
+
+        for sample_file in sample_files:
+            sample_file.unlink()
+        removed = len(sample_files)
+        total_removed += removed
+        logs.append(f"[{problem_dir.name}] 🧹 Removed {removed} sample file(s)")
+
+    print("\n".join(logs))
+    print(f"\nTotal files removed: {total_removed}")
+    return True
+
+
 def main():
-    solution_dirs = sorted([p for p in SOLUTION_DIR.iterdir() if p.is_dir()])
+    args = parse_args()
+    solution_dirs = iter_problem_dirs()
+
+    if args.clean or args.clean_all:
+        target = args.clean if not args.clean_all else None
+        ok = clean_samples(solution_dirs, target_problem=target)
+        sys.exit(0 if ok else 1)
+
     passed = 0
     total = 0
     logs = []

@@ -3,7 +3,8 @@
 ## TLDR
 1. Write your code to `solutions/Problem_*/algorithm.py` under the problem folder.
 2. Copy and paste testcases to `solutions/Problem_*/testcases/sample_*.in` and `solutions/Problem_*/testcases/sample_*.out` from Kattis. It is okay to leave one empty if there are less than 3 testcases on Kattis. You can also add more test files.
-3. Run `python3 main.py`
+3. Run `python3 main.py` to execute all solutions against their samples.
+4. (Optional) Run `python3 main.py --clean Problem_X` or `python3 main.py --clean-all` when you want to clear stored samples.
 
 ## Overview
 A lightweight CLI harness for running CMPUT 403 Kattis-style solutions against curated samples. It auto-discovers each problem, executes its `algorithm.py`, and reports unified diffs when output mismatches are encountered.
@@ -22,6 +23,20 @@ A lightweight CLI harness for running CMPUT 403 Kattis-style solutions against c
 python3 main.py
 ```
 The runner locates every `solutions/Problem_*/algorithm.py`, streams each `sample_*.in` into the script, and compares the captured stdout with the corresponding `.out`. Results are printed per sample with a final summary. A non-zero exit code indicates at least one failure, timeout, or missing artifact.
+
+### Cleaning Samples
+
+Use the built-in cleanup helpers when you need to discard sample files:
+
+```bash
+# Remove all .in/.out files for a single problem
+python3 main.py --clean Problem_X
+
+# Purge samples for every problem
+python3 main.py --clean-all
+```
+
+Cleaning only touches `.in`/`.out` files inside each `testcases/` folder; it leaves other assets intact.
 
 Each test execution inherits a 10 second timeout. When a timeout or runtime error occurs, stderr (if any) is reported with the failure message.
 
@@ -44,4 +59,3 @@ Each test execution inherits a 10 second timeout. When a timeout or runtime erro
 - Co-locate quick assertions (e.g., `test_solve`) inside each `algorithm.py` for fast feedback.
 - Use descriptive sample cases that mirror Kattis “Sample Input/Output” plus custom edge cases so the harness doubles as regression protection.
 - Consider scripting additional samples (stress tests) and naming them clearly (e.g., `large_01.in`)—the runner accepts any `*.in/.out` pair.
-
